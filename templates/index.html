@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+{% block title %}SummeRise — AI Article Summarizer{% endblock %}
+
+{% block extra_styles %}
+
+/* ── HERO ── */
+.hero {
+  padding: 3.5rem 0 3rem;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--accent-bright);
+  margin-bottom: 1.25rem;
+  opacity: 0; animation: fadeUp 0.5s ease 0.1s forwards;
+}
+.hero-eyebrow::before, .hero-eyebrow::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(124,106,247,0.4), transparent);
+  width: 32px;
+}
+.hero h1 {
+  opacity: 0; animation: fadeUp 0.5s ease 0.2s forwards;
+  margin-bottom: 1rem;
+}
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero-sub {
+  color: var(--text2);
+  font-size: 1rem;
+  font-style: italic;
+  max-width: 480px;
+  opacity: 0; animation: fadeUp 0.5s ease 0.3s forwards;
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── SCRAPE PANEL ── */
+.scrape-panel {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 3rem;
+  opacity: 0; animation: fadeUp 0.5s ease 0.4s forwards;
+}
+.scrape-panel::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), rgba(124,106,247,0.3), transparent);
+}
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.4rem 1.75rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+}
+.panel-header-left { display: flex; align-items: center; gap: 10px; }
+.panel-icon {
+  width: 30px; height: 30px;
+  background: var(--accent-glow);
+  border: 1px solid rgba(124,106,247,0.25);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.panel-header h2 { font-size: 0.95rem; }
+.panel-hint { font-size: 11.5px; color: var(--muted); }
+
+.panel-body { padding: 1.4rem 1.75rem 1.75rem; }
+
+.form-row {
+  display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;
+}
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group label {
+  font-size: 10.5px; color: var(--muted);
+  letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600;
+}
+
+.url-input {
+  width: 100%; padding: 10px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 13.5px;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.url-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124,106,247,0.12);
+}
+
+.site-chip {
+  font-size: 12px; font-weight: 500;
+  color: var(--text2);
+  background: var(--surface2);
+  border: 1px solid var(--border-strong);
+  padding: 5px 13px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s;
+}
+.site-chip:hover { color: var(--text); border-color: var(--border-hover); }
+
+.spinner {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+  display: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── ARTICLES SECTION ── */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+.section-header h2 { font-size: 1rem; color: var(--text2); font-weight: 600; }
+.count-pill {
+  font-size: 11px; font-weight: 600;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 1px solid var(--border-strong);
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+
+.articles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 1rem;
+}
+
+a.article-card {
+  display: flex; flex-direction: column; gap: 12px;
+  text-decoration: none; color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.35rem;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  animation: fadeUp 0.4s ease both;
+}
+a.article-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: 0 8px 40px rgba(124,106,247,0.1);
+  transform: translateY(-3px);
+}
+.card-top { display: flex; align-items: center; justify-content: space-between; }
+.card-id { font-size: 10.5px; color: var(--muted); font-family: 'Syne', monospace; }
+.article-card h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--text);
+}
+.summary-preview {
+  font-size: 12.5px;
+  color: var(--text2);
+  line-height: 1.65;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex-grow: 1;
+}
+.card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+.card-author { font-size: 11.5px; color: var(--muted); }
+.card-arrow {
+  font-size: 11.5px; color: var(--accent-bright);
+  display: flex; align-items: center; gap: 4px;
+  font-weight: 500;
+  transition: gap 0.18s;
+}
+a.article-card:hover .card-arrow { gap: 7px; }
+
+.card-delete {
+  position: absolute; top: 10px; right: 10px;
+  width: 26px; height: 26px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: color 0.18s, background 0.18s, border-color 0.18s;
+  opacity: 0;
+  transition: opacity 0.18s, color 0.18s, background 0.18s;
+}
+a.article-card:hover .card-delete {
+  opacity: 1;
+}
+.card-delete:hover {
+  color: #f87171;
+  background: rgba(248,113,113,0.1);
+  border-color: rgba(248,113,113,0.3);
+}
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 5rem 2rem 4rem;
+  text-align: center; gap: 1rem;
+}
+.empty-icon {
+  width: 64px; height: 64px;
+  background: var(--surface2);
+  border: 1px solid var(--border-strong);
+  border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; margin-bottom: 0.5rem;
+}
+.empty-state h2 { color: var(--text2); font-size: 1.05rem; }
+.empty-state p { color: var(--muted); font-size: 13.5px; font-style: italic; max-width: 300px; }
+.empty-steps { display: flex; gap: 8px; margin-top: 0.5rem; flex-wrap: wrap; justify-content: center; }
+.empty-step {
+  font-size: 11.5px; color: var(--text2);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  padding: 5px 14px; border-radius: 100px;
+  display: flex; align-items: center; gap: 6px;
+}
+.empty-step-num {
+  width: 16px; height: 16px;
+  background: var(--accent-glow); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700; color: var(--accent-bright);
+}
+
+{% endblock %}
+
+{% block content %}
+
+<div class="hero">
+  <div class="hero-eyebrow">AI-Powered Article Summariser</div>
+  <h1>Scrape. Summarise.<br><em>Stay informed.</em></h1>
+  <p class="hero-sub">Powered by Groq (Llama 3) — pull any article from the web and get an instant AI summary.</p>
+</div>
+
+<div class="scrape-panel">
+  <div class="panel-header">
+    <div class="panel-header-left">
+      <div class="panel-icon">🔗</div>
+      <h2>Scrape Any URL</h2>
+    </div>
+    <span class="panel-hint">Paste any article link</span>
+  </div>
+  <div class="panel-body">
+    <div class="form-row">
+      <div class="form-group" style="flex:1; min-width:200px;">
+        <label>Article URL</label>
+        <input type="text" id="urlInput" class="url-input"
+          placeholder="https://example.com/any-article" />
+      </div>
+      <div class="form-group" style="justify-content:flex-end;">
+        <label style="opacity:0; user-select:none;">go</label>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-primary" id="urlBtn" onclick="scrapeUrl()">
+            <span id="urlBtnText">Scrape URL</span>
+            <div class="spinner" id="urlSpinner"></div>
+          </button>
+          <button class="btn btn-ghost" onclick="clearAll()">Clear All</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:1.1rem;">
+      <p style="font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:8px;">✅ Tested & Working Sites</p>
+      <div style="display:flex; flex-wrap:wrap; gap:6px;">
+        <button class="site-chip" onclick="fillUrl('https://www.bbc.com/news')">🌍 BBC News</button>
+        <button class="site-chip" onclick="fillUrl('https://www.reuters.com')">📰 Reuters</button>
+        <button class="site-chip" onclick="fillUrl('https://dev.to')">💻 Dev.to</button>
+        <button class="site-chip" onclick="fillUrl('https://en.wikipedia.org/wiki/Artificial_intelligence')">📖 Wikipedia</button>
+        <button class="site-chip" onclick="fillUrl('https://techcrunch.com')">🚀 TechCrunch</button>
+        <button class="site-chip" onclick="fillUrl('https://www.theverge.com')">⚡ The Verge</button>
+        <button class="site-chip" onclick="fillUrl('https://arstechnica.com')">🔬 Ars Technica</button>
+        <button class="site-chip" onclick="fillUrl('https://medium.com')">✍️ Medium</button>
+      </div>
+      <p style="font-size:10.5px; color:var(--muted); margin-top:10px;">💡 Click a chip to autofill, then replace with a specific article URL from that site.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section-header">
+  <h2>Stored Articles</h2>
+  <span class="count-pill">{{ articles|length }} article{{ 's' if articles|length != 1 }}</span>
+</div>
+
+{% if articles %}
+<div class="articles-grid">
+  {% for a in articles %}
+  <a href="/article/{{ a.id }}" class="article-card" style="animation-delay: {{ loop.index0 * 0.05 }}s; position:relative;">
+    <button class="card-delete" onclick="event.preventDefault(); deleteCard({{ a.id }}, this)" title="Delete article">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 3h8M5 3V2h2v1M4.5 3v6m3-6v6M3 3l.5 7h5L9 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="card-top">
+      <span class="tag tag-default">Article</span>
+      <span class="card-id">#{{ a.id }}</span>
+    </div>
+    <h3>{{ a.title }}</h3>
+    <p class="summary-preview">{{ a.summary }}</p>
+    <div class="card-footer">
+      <span class="card-author">{{ a.author }}</span>
+      <span class="card-arrow">Read more <span>→</span></span>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">📭</div>
+  <h2>No articles yet</h2>
+  <p>Paste any article URL above and hit Scrape URL to get started.</p>
+  <div class="empty-steps">
+    <div class="empty-step"><span class="empty-step-num">1</span> Paste a URL</div>
+    <div class="empty-step"><span class="empty-step-num">2</span> Hit Scrape URL</div>
+    <div class="empty-step"><span class="empty-step-num">3</span> Read the summary</div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function deleteCard(id, btn) {
+  if (!confirm('Delete this article? This cannot be undone.')) return;
+  try {
+    const res  = await fetch(`/delete/${id}`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      const card = btn.closest('a.article-card');
+      card.style.transition = 'opacity 0.3s, transform 0.3s';
+      card.style.opacity = '0';
+      card.style.transform = 'scale(0.95)';
+      setTimeout(() => { card.remove(); updateCount(); }, 300);
+      showToast('Article deleted.', 'success');
+    } else {
+      showToast('Error: ' + data.error, 'error');
+    }
+  } catch (e) {
+    showToast('Network error.', 'error');
+  }
+}
+
+function updateCount() {
+  const remaining = document.querySelectorAll('a.article-card').length;
+  const pill = document.querySelector('.count-pill');
+  if (pill) pill.textContent = remaining + ' article' + (remaining !== 1 ? 's' : '');
+}
+
+function fillUrl(url) {
+  document.getElementById('urlInput').value = url;
+  document.getElementById('urlInput').focus();
+}
+
+async function scrapeUrl() {
+  const btn     = document.getElementById('urlBtn');
+  const spinner = document.getElementById('urlSpinner');
+  const btnText = document.getElementById('urlBtnText');
+  const url     = document.getElementById('urlInput').value.trim();
+
+  if (!url || !url.startsWith('http')) {
+    showToast('Please enter a valid URL starting with http/https', 'error');
+    return;
+  }
+
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  btnText.textContent = 'Scraping...';
+
+  try {
+    const form = new FormData();
+    form.append('url', url);
+
+    const res  = await fetch('/scrape-url', { method: 'POST', body: form });
+    const data = await res.json();
+
+    if (data.success) {
+      if (data.stored > 0) {
+        showToast(`✓ Saved: "${data.title}"`, 'success');
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        showToast('Article already exists in database.', 'error');
+      }
+    } else {
+      showToast('Error: ' + data.error, 'error');
+    }
+  } catch (e) {
+    showToast('Network error. Try again.', 'error');
+  } finally {
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    btnText.textContent = 'Scrape URL';
+  }
+}
+
+async function clearAll() {
+  if (!confirm('Delete all stored articles? This cannot be undone.')) return;
+  try {
+    const res  = await fetch('/clear', { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      showToast('All articles cleared.', 'success');
+      setTimeout(() => location.reload(), 1200);
+    } else {
+      showToast('Error: ' + data.error, 'error');
+    }
+  } catch (e) {
+    showToast('Network error.', 'error');
+  }
+}
+</script>
+{% endblock %}

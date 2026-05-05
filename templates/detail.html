@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title }} — SummeRise{% endblock %}
+
+{% block extra_styles %}
+
+.back-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--muted); font-size: 13px; text-decoration: none;
+  margin-bottom: 2.25rem;
+  transition: color 0.18s;
+  font-weight: 500;
+}
+.back-link:hover { color: var(--accent-bright); }
+.back-link svg { transition: transform 0.18s; }
+.back-link:hover svg { transform: translateX(-3px); }
+
+/* Hero */
+.article-hero {
+  margin-bottom: 2.5rem;
+  opacity: 0; animation: fadeUp 0.4s ease 0.05s forwards;
+}
+.article-meta {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 1rem; flex-wrap: wrap;
+}
+.meta-sep { color: var(--border-strong); }
+.meta-text { font-size: 12px; color: var(--muted); }
+.article-hero h1 {
+  font-size: clamp(1.55rem, 4vw, 2.3rem);
+  line-height: 1.15;
+}
+
+/* Two column */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  opacity: 0; animation: fadeUp 0.4s ease 0.15s forwards;
+}
+@media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+.col-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  margin-bottom: 0.85rem;
+  display: flex; align-items: center; gap: 8px;
+}
+.col-label-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+
+/* Summary box */
+.summary-box {
+  background: var(--surface);
+  border: 1px solid rgba(124,106,247,0.3);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  display: flex; flex-direction: column;
+}
+.summary-box::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-bright), transparent);
+}
+.summary-box::after {
+  content: '';
+  position: absolute; top: 0; left: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--accent), transparent 60%);
+}
+.col-label.summary-label { color: var(--accent-bright); }
+.col-label.summary-label .col-label-dot { background: var(--accent-bright); box-shadow: 0 0 6px var(--accent); }
+.summary-box p {
+  font-size: 14.5px;
+  line-height: 1.85;
+  color: var(--text);
+  font-weight: 400;
+}
+
+/* Content box */
+.content-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  height: 100%;
+  display: flex; flex-direction: column;
+  max-height: 460px;
+  overflow: hidden;
+  position: relative;
+}
+/* fade out bottom of content */
+.content-box::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 64px;
+  background: linear-gradient(transparent, var(--surface));
+  pointer-events: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+.col-label.content-label { color: var(--text2); }
+.col-label.content-label .col-label-dot { background: var(--text2); }
+.content-scroll {
+  overflow-y: auto;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+  padding-right: 4px;
+}
+.content-box p {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.8;
+  font-weight: 400;
+  white-space: pre-wrap;
+}
+
+/* Source row */
+.source-row {
+  display: flex; align-items: center; gap: 12px;
+  opacity: 0; animation: fadeUp 0.4s ease 0.25s forwards;
+}
+.source-link {
+  display: inline-flex; align-items: center; gap: 7px;
+  color: var(--accent-bright);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  border: 1px solid rgba(124,106,247,0.28);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-glow);
+  transition: background 0.18s, border-color 0.18s, transform 0.18s;
+}
+.source-link:hover {
+  background: rgba(124,106,247,0.2);
+  border-color: rgba(124,106,247,0.5);
+  transform: translateY(-1px);
+}
+
+.btn-delete {
+  display: inline-flex; align-items: center; gap: 7px;
+  color: #f87171;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  border: 1px solid rgba(248,113,113,0.28);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(248,113,113,0.08);
+  transition: background 0.18s, border-color 0.18s, transform 0.18s;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-delete:hover {
+  background: rgba(248,113,113,0.18);
+  border-color: rgba(248,113,113,0.5);
+  transform: translateY(-1px);
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(12px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+{% endblock %}
+
+{% block content %}
+<a href="/" class="back-link">
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M9 2L4 7L9 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  All articles
+</a>
+
+<div class="article-hero">
+  <div class="article-meta">
+    <span class="tag tag-default">Article</span>
+    <span class="meta-sep">·</span>
+    <span class="meta-text">{{ article.author }}</span>
+    <span class="meta-sep">·</span>
+    <span class="meta-text">{{ article.created_at[:10] }}</span>
+  </div>
+  <h1>{{ article.title }}</h1>
+</div>
+
+<div class="two-col">
+  <div>
+    <div class="col-label summary-label">
+      <span class="col-label-dot"></span>
+      AI Summary
+    </div>
+    <div class="summary-box">
+      <p>{{ article.summary }}</p>
+    </div>
+  </div>
+  <div>
+    <div class="col-label content-label">
+      <span class="col-label-dot"></span>
+      Original Content
+    </div>
+    <div class="content-box">
+      <div class="content-scroll">
+        <p>{{ article.content }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="source-row">
+  <a href="{{ article.source_url }}" target="_blank" class="source-link">
+    View original source
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2.5 9.5L9.5 2.5M9.5 2.5H4.5M9.5 2.5V7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </a>
+  <button class="btn-delete" onclick="deleteArticle({{ article.id }})">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 3h8M5 3V2h2v1M4.5 3v6m3-6v6M3 3l.5 7h5L9 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Delete Article
+  </button>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function deleteArticle(id) {
+  if (!confirm('Delete this article? This cannot be undone.')) return;
+  try {
+    const res  = await fetch(`/delete/${id}`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Article deleted.', 'success');
+      setTimeout(() => window.location.href = '/', 1200);
+    } else {
+      showToast('Error: ' + data.error, 'error');
+    }
+  } catch (e) {
+    showToast('Network error.', 'error');
+  }
+}
+</script>
+{% endblock %}

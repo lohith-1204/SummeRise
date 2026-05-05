@@ -1,0 +1,5 @@
+flask
+python-dotenv
+groq
+newspaper3k
+lxml[html_clean]
